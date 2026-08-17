@@ -15,7 +15,10 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 10,
-    requireEmailVerification: true,
+    // Members are sent to /verify-email after login. Do not block sign-in here —
+    // production has no working Resend key yet, so the owner would be locked out.
+    requireEmailVerification: false,
+    autoSignIn: false,
   },
   emailVerification: {
     sendOnSignUp: true,

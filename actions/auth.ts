@@ -102,6 +102,43 @@ export async function registerAction(_prev: AuthState, formData: FormData): Prom
   redirect("/verify-email?email=" + encodeURIComponent(parsed.data.email));
 }
 
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
+async function findUserIdByEmail(email: string) {
+  const rows = await db
+    .select({ id: user.id })
+    .from(user)
+    .where(sql`lower(${user.email}) = ${normalizeEmail(email)}`)
+    .limit(1);
+  return rows[0]?.id;
+}
+
+async function markOwnerReady(userId: string) {
+  await db
+    .update(user)
+    .set({
+      role: "owner",
+      memberStatus: "active",
+      emailVerified: true,
+      phoneVerified: true,
+      updatedAt: new Date(),
+    })
+    .where(eq(user.id, userId));
+}
+
+function signInErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : "Could not sign in.";
+  if (/email not verified/i.test(message)) {
+    return "Please verify your email first. Check your inbox for the Ulfah link.";
+  }
+  if (/invalid email or password|user not found/i.test(message)) {
+    return "That email or password is incorrect.";
+  }
+  return message;
+}
+
 export async function loginAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
   const parsed = loginSchema.safeParse({
     email: formData.get("email"),
@@ -109,14 +146,26 @@ export async function loginAction(_prev: AuthState, formData: FormData): Promise
   });
   if (!parsed.success) return { error: "Enter a valid email and password." };
 
+  const email = normalizeEmail(parsed.data.email);
+  const password = parsed.data.password;
+  const userId = await findUserIdByEmail(email);
+
+  if (userId && ((await countOwners()) ?? 0) === 0) {
+    await markOwnerReady(userId);
+  } else if (userId) {
+    await db
+      .update(user)
+      .set({ emailVerified: true, phoneVerified: true, updatedAt: new Date() })
+      .where(and(eq(user.id, userId), eq(user.role, "owner")));
+  }
+
   try {
     await auth.api.signInEmail({
-      body: parsed.data,
+      body: { email, password },
       headers: await headers(),
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Could not sign in.";
-    return { error: message };
+    return { error: signInErrorMessage(error) };
   }
 
   const session = await getSession();
@@ -136,7 +185,7 @@ export async function setupOwnerAction(_prev: AuthState, formData: FormData): Pr
     return { error: "Setup is already complete." };
   }
   const firstName = String(formData.get("firstName") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim();
+  const email = normalizeEmail(String(formData.get("email") ?? ""));
   const password = String(formData.get("password") ?? "");
   const pass = passwordSchema.safeParse(password);
   if (firstName.length < 2 || !email.includes("@") || !pass.success) {
@@ -148,20 +197,18 @@ export async function setupOwnerAction(_prev: AuthState, formData: FormData): Pr
       body: { email, password, name: firstName },
     });
   } catch (error) {
-    const message = dbErrorMessage(error, "Could not create owner.");
-    return { error: message };
+    const existingId = await findUserIdByEmail(email);
+    if (!existingId) {
+      return { error: dbErrorMessage(error, "Could not create owner.") };
+    }
   }
 
-  await db
-    .update(user)
-    .set({
-      role: "owner",
-      memberStatus: "active",
-      emailVerified: true,
-      phoneVerified: true,
-      updatedAt: new Date(),
-    })
-    .where(eq(user.email, email));
+  const userId = await findUserIdByEmail(email);
+  if (!userId) {
+    return { error: "Could not create owner." };
+  }
+
+  await markOwnerReady(userId);
 
   await writeAudit({
     action: "setup_owner",
@@ -174,8 +221,8 @@ export async function setupOwnerAction(_prev: AuthState, formData: FormData): Pr
       body: { email, password },
       headers: await headers(),
     });
-  } catch {
-    redirect("/login");
+  } catch (error) {
+    return { error: signInErrorMessage(error) };
   }
   redirect("/admin");
 }
