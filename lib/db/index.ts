@@ -26,6 +26,20 @@ function createDb() {
     return drizzlePostgres(globalForDb.postgres, { schema });
   }
 
+  // Vercel has a read-only filesystem. Never use PGlite there.
+  if (process.env.VERCEL) {
+    if (!globalForDb.postgres) {
+      globalForDb.postgres = postgres(
+        url || "postgresql://unused:unused@127.0.0.1:9/unused",
+        {
+          max: 1,
+          connect_timeout: 2,
+        },
+      );
+    }
+    return drizzlePostgres(globalForDb.postgres, { schema });
+  }
+
   if (!globalForDb.pglite) {
     const dir = resolve(process.cwd(), PGLITE_PATH);
     mkdirSync(dir, { recursive: true });
