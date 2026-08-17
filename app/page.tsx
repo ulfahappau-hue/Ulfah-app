@@ -23,22 +23,31 @@ export default async function HomePage() {
       {dbDown ? (
         <div className="rounded-3xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-950">
           <p className="font-medium">Postgres is not connected.</p>
-          <p className="mt-2 leading-relaxed">
-            Ignore any <code>devtools://</code> debugger link. Use{" "}
-            <a className="underline" href="http://localhost:3000">
-              http://localhost:3000
-            </a>
-            . Create a free database at{" "}
-            <a className="underline" href="https://neon.tech" target="_blank" rel="noreferrer">
-              neon.tech
-            </a>
-            , paste the connection string into <code>.env.local</code> as{" "}
-            <code>DATABASE_URL</code>, then run:
-          </p>
-          <pre className="mt-3 overflow-x-auto rounded-2xl bg-white p-3 text-xs">
-            {`npm run db:push
+          {process.env.VERCEL ? (
+            <p className="mt-2 leading-relaxed">
+              The live app needs the Neon connection string. If you connected a Vercel
+              Postgres/Neon store, wait for the latest deploy to finish, then refresh.
+            </p>
+          ) : (
+            <>
+              <p className="mt-2 leading-relaxed">
+                Ignore any <code>devtools://</code> debugger link. Use{" "}
+                <a className="underline" href="http://localhost:3000">
+                  http://localhost:3000
+                </a>
+                . Create a free database at{" "}
+                <a className="underline" href="https://neon.tech" target="_blank" rel="noreferrer">
+                  neon.tech
+                </a>
+                , paste the connection string into <code>.env.local</code> as{" "}
+                <code>DATABASE_URL</code>, then run:
+              </p>
+              <pre className="mt-3 overflow-x-auto rounded-2xl bg-white p-3 text-xs">
+                {`npm run db:push
 npm run dev`}
-          </pre>
+              </pre>
+            </>
+          )}
         </div>
       ) : null}
       <section className="overflow-hidden rounded-[2rem] border border-gold/25 bg-[radial-gradient(circle_at_top_right,#c6a36b22,transparent_40%),linear-gradient(180deg,#fbfaf6,#f4efe4)] px-6 py-12 sm:px-10">

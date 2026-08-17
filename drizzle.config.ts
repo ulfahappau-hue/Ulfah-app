@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { defineConfig } from "drizzle-kit";
-import { isRemotePostgres, PGLITE_PATH } from "./lib/db-mode";
+import { getDatabaseUrl, isRemotePostgres, PGLITE_PATH } from "./lib/db-mode";
 
 function loadEnvFile(filename: string) {
   try {
@@ -25,7 +25,7 @@ function loadEnvFile(filename: string) {
 loadEnvFile(".env.local");
 loadEnvFile(".env");
 
-const url = process.env.DATABASE_URL ?? "";
+const url = getDatabaseUrl({ preferUnpooled: true });
 
 export default isRemotePostgres(url)
   ? defineConfig({

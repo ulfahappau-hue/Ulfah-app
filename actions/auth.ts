@@ -13,8 +13,15 @@ import { loginSchema, passwordSchema, registerSchema } from "@/lib/validators";
 
 function dbErrorMessage(error: unknown, fallback: string) {
   const message = error instanceof Error ? error.message : fallback;
+  if (/relation .* does not exist/i.test(message)) {
+    return process.env.VERCEL
+      ? "The database is connected, but tables are missing. Redeploy the app so the schema can be applied."
+      : "Database tables are missing. Stop npm run dev, run npm run db:push, then npm run dev again.";
+  }
   if (/failed query|connect|econnrefused|enotfound/i.test(message)) {
-    return "Database is not ready. Stop npm run dev, run npm run db:push, then npm run dev again.";
+    return process.env.VERCEL
+      ? "Could not reach Postgres. In Vercel, DATABASE_URL must be the Neon connection string, not localhost."
+      : "Database is not ready. Stop npm run dev, run npm run db:push, then npm run dev again.";
   }
   return message;
 }

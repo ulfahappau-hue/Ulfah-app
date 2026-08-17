@@ -4,7 +4,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
 import { drizzle as drizzlePostgres } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { isRemotePostgres, PGLITE_PATH } from "../db-mode";
+import { getDatabaseUrl, isRemotePostgres, PGLITE_PATH } from "../db-mode";
 import * as schema from "./schema";
 
 const globalForDb = globalThis as unknown as {
@@ -13,14 +13,15 @@ const globalForDb = globalThis as unknown as {
 };
 
 function createDb() {
-  const url = process.env.DATABASE_URL ?? "";
+  const url = getDatabaseUrl({ preferUnpooled: false });
   if (isRemotePostgres(url)) {
     if (!globalForDb.postgres) {
       globalForDb.postgres = postgres(url, {
-        max: 10,
+        max: process.env.VERCEL ? 1 : 10,
         idle_timeout: 20,
         connect_timeout: 8,
         ssl: "require",
+        prepare: false,
       });
     }
     return drizzlePostgres(globalForDb.postgres, { schema });

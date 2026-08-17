@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "tsx scripts/ensure-schema.ts && next build",
     "start": "next start",
     "lint": "eslint",
     "db:push": "mkdir -p data/pglite && node --env-file=.env.local ./node_modules/drizzle-kit/bin.cjs push",
