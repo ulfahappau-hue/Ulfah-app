@@ -116,6 +116,28 @@ async function findUserIdByEmail(email: string) {
   return rows[0]?.id;
 }
 
+async function redirectPathForEmail(email: string) {
+  const normalized = normalizeEmail(email);
+  const rows = await db
+    .select({
+      role: user.role,
+      emailVerified: user.emailVerified,
+      phoneVerified: user.phoneVerified,
+      memberStatus: user.memberStatus,
+    })
+    .from(user)
+    .where(ilike(user.email, normalized))
+    .limit(1);
+  const found = rows[0];
+  if (!found) return "/admin";
+  return nextPathForUser({
+    role: found.role,
+    emailVerified: Boolean(found.emailVerified),
+    phoneVerified: Boolean(found.phoneVerified),
+    memberStatus: found.memberStatus,
+  });
+}
+
 async function markOwnerReady(userId: string) {
   await db
     .update(user)
@@ -197,16 +219,9 @@ export async function loginAction(_prev: AuthState, formData: FormData): Promise
     }
   }
 
-  const session = await getSession();
-  if (!session) return { error: "Could not start a session." };
-  redirect(
-    nextPathForUser({
-      role: session.user.role,
-      emailVerified: Boolean(session.user.emailVerified),
-      phoneVerified: Boolean(session.user.phoneVerified),
-      memberStatus: session.user.memberStatus,
-    }),
-  );
+  // Set-Cookie from signInEmail is not on this request, so getSession() is null
+  // here. Redirect and let the next request read the new session cookie.
+  redirect(await redirectPathForEmail(email));
 }
 
 export async function setupOwnerAction(_prev: AuthState, formData: FormData): Promise<AuthState> {

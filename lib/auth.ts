@@ -5,13 +5,44 @@ import { db } from "./db";
 import * as schema from "./db/schema";
 import { emailLayout, sendEmail } from "./email";
 
+function originFromHost(host: string | undefined) {
+  if (!host) return undefined;
+  return host.startsWith("http://") || host.startsWith("https://")
+    ? host.replace(/\/$/, "")
+    : `https://${host}`;
+}
+
+function authBaseURL() {
+  return (
+    originFromHost(process.env.BETTER_AUTH_URL) ??
+    originFromHost(process.env.VERCEL_PROJECT_PRODUCTION_URL) ??
+    originFromHost(process.env.VERCEL_URL) ??
+    "http://localhost:3000"
+  );
+}
+
+function authTrustedOrigins() {
+  const origins = new Set<string>();
+  for (const value of [
+    process.env.BETTER_AUTH_URL,
+    process.env.VERCEL_PROJECT_PRODUCTION_URL,
+    process.env.VERCEL_URL,
+    "https://ulfah-app.vercel.app",
+  ]) {
+    const origin = originFromHost(value);
+    if (origin) origins.add(origin);
+  }
+  if (origins.size === 0) origins.add("http://localhost:3000");
+  return [...origins];
+}
+
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
     schema,
   }),
   secret: process.env.BETTER_AUTH_SECRET,
-  baseURL: process.env.BETTER_AUTH_URL,
+  baseURL: authBaseURL(),
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 10,
@@ -83,7 +114,8 @@ export const auth = betterAuth({
     window: 60,
     max: 20,
   },
-  trustedOrigins: [process.env.BETTER_AUTH_URL ?? "http://localhost:3000"],
+  trustedOrigins: authTrustedOrigins(),
+  ...(process.env.VERCEL ? { advanced: { useSecureCookies: true } } : {}),
   plugins: [nextCookies()],
 });
 
