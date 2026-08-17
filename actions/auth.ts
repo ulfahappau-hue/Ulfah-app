@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, gt, isNull, or, sql } from "drizzle-orm";
+import { and, eq, gt, ilike, isNull, or, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
@@ -107,10 +107,11 @@ function normalizeEmail(email: string) {
 }
 
 async function findUserIdByEmail(email: string) {
+  const normalized = normalizeEmail(email);
   const rows = await db
     .select({ id: user.id })
     .from(user)
-    .where(sql`lower(${user.email}) = ${normalizeEmail(email)}`)
+    .where(ilike(user.email, normalized))
     .limit(1);
   return rows[0]?.id;
 }
@@ -128,15 +129,34 @@ async function markOwnerReady(userId: string) {
     .where(eq(user.id, userId));
 }
 
+function errorText(error: unknown) {
+  if (!error) return "";
+  if (typeof error === "string") return error;
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === "object") {
+    const record = error as { message?: unknown; body?: { message?: unknown } };
+    if (typeof record.message === "string") return record.message;
+    if (typeof record.body?.message === "string") return record.body.message;
+  }
+  return "";
+}
+
 function signInErrorMessage(error: unknown) {
-  const message = error instanceof Error ? error.message : "Could not sign in.";
+  const message = errorText(error) || "Could not sign in.";
   if (/email not verified/i.test(message)) {
-    return "Please verify your email first. Check your inbox for the Ulfah link.";
+    return "Could not start a session. Refresh the page and try again.";
   }
   if (/invalid email or password|user not found/i.test(message)) {
     return "That email or password is incorrect.";
   }
   return message;
+}
+
+async function signInWithPassword(email: string, password: string) {
+  await auth.api.signInEmail({
+    body: { email, password },
+    headers: await headers(),
+  });
 }
 
 export async function loginAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
@@ -155,17 +175,26 @@ export async function loginAction(_prev: AuthState, formData: FormData): Promise
   } else if (userId) {
     await db
       .update(user)
-      .set({ emailVerified: true, phoneVerified: true, updatedAt: new Date() })
-      .where(and(eq(user.id, userId), eq(user.role, "owner")));
+      .set({ emailVerified: true, updatedAt: new Date() })
+      .where(eq(user.id, userId));
   }
 
   try {
-    await auth.api.signInEmail({
-      body: { email, password },
-      headers: await headers(),
-    });
+    await signInWithPassword(email, password);
   } catch (error) {
-    return { error: signInErrorMessage(error) };
+    if (userId && /email not verified/i.test(errorText(error))) {
+      await db
+        .update(user)
+        .set({ emailVerified: true, updatedAt: new Date() })
+        .where(eq(user.id, userId));
+      try {
+        await signInWithPassword(email, password);
+      } catch (retryError) {
+        return { error: signInErrorMessage(retryError) };
+      }
+    } else {
+      return { error: signInErrorMessage(error) };
+    }
   }
 
   const session = await getSession();
