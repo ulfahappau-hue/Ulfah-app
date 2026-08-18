@@ -1,17 +1,21 @@
 import { Resend } from "resend";
 import { APP_NAME } from "./constants";
 
-const from = process.env.EMAIL_FROM ?? `${APP_NAME} <noreply@localhost>`;
-
 export async function sendEmail(to: string, subject: string, html: string) {
   const key = process.env.RESEND_API_KEY;
+  const from = process.env.EMAIL_FROM ?? `${APP_NAME} <noreply@localhost>`;
   if (!key) {
     console.info(`[email:dev] to=${to}\nsubject=${subject}\n${html}`);
     return { dev: true as const };
   }
   const resend = new Resend(key);
-  await resend.emails.send({ from, to, subject, html });
-  return { dev: false as const };
+  const { data, error } = await resend.emails.send({ from, to, subject, html });
+  if (error) {
+    console.error("[email:resend]", { to, subject, from, error });
+    throw new Error(error.message);
+  }
+  console.info("[email:sent]", { to, subject, id: data?.id });
+  return { dev: false as const, id: data?.id };
 }
 
 export function emailLayout(title: string, body: string) {

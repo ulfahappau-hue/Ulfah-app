@@ -3,7 +3,7 @@
 import { eq, inArray, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { writeAudit } from "@/lib/audit";
-import { APP_NAME } from "@/lib/constants";
+import { APP_NAME, APP_URL } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { contactSecret, invite, match, profile, user } from "@/lib/db/schema";
 import { decryptSecret } from "@/lib/encryption";
@@ -43,6 +43,21 @@ export async function createInviteAction(formData: FormData) {
     targetType: "invite",
     metadata: { code, email },
   });
+  if (email) {
+    const registerUrl = `${APP_URL}/register?invite=${encodeURIComponent(code)}`;
+    await sendEmail(
+      email,
+      `You're invited to ${APP_NAME}`,
+      emailLayout(
+        "Your invite code",
+        `<p>Assalamu alaikum,</p>
+         <p>You have been invited to join ${APP_NAME}.</p>
+         <p>Your invite code: <strong style="letter-spacing:.12em">${code}</strong></p>
+         <p><a href="${registerUrl}" style="display:inline-block;background:#1B3D32;color:#F4EFE4;padding:12px 18px;border-radius:999px;text-decoration:none">Create your account</a></p>
+         <p>If the button does not work, open ${registerUrl}</p>`,
+      ),
+    );
+  }
   revalidatePath("/admin/invites");
 }
 

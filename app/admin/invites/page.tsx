@@ -14,8 +14,8 @@ export default async function AdminInvitesPage() {
       <h1 className="font-display text-3xl text-forest">Invites</h1>
       <Card>
         <form action={createInviteAction} className="grid gap-3 sm:grid-cols-2">
-          <Field label="Reserve for email (optional)">
-            <Input name="email" type="email" />
+          <Field label="Email to send invite (optional)">
+            <Input name="email" type="email" placeholder="guest@example.com" />
           </Field>
           <Field label="Note">
             <Input name="note" />

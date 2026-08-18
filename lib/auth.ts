@@ -52,7 +52,7 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 10,
     // Members are sent to /verify-email after login. Do not block sign-in here —
-    // production has no working Resend key yet, so the owner would be locked out.
+    // the owner must still be able to sign in if a verification email is delayed.
     requireEmailVerification: false,
     autoSignIn: false,
     sendResetPassword: async ({ user, url }) => {
