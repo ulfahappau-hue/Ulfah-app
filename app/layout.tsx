@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Noto_Naskh_Arabic, Source_Sans_3 } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { AppHeader } from "@/components/chrome";
 import { APP_NAME, APP_URL } from "@/lib/constants";
 import { getDictionary } from "@/lib/i18n";
@@ -60,6 +61,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           user={session ? { name: session.user.name, role: session.user.role } : null}
         />
         <div className="mx-auto w-full max-w-5xl flex-1 px-4 pb-24 pt-6">{children}</div>
+        <Analytics />
       </body>
     </html>
   );
