@@ -2,9 +2,9 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "./db";
-import * as schema from "./db/schema";
+import { account, session, user, verification } from "./db/schema";
 import { emailLayout, sendEmail } from "./email";
-import { APP_NAME } from "./constants";
+import { APP_NAME, APP_URL } from "./constants";
 
 function originFromHost(host: string | undefined) {
   if (!host) return undefined;
@@ -16,6 +16,7 @@ function originFromHost(host: string | undefined) {
 function authBaseURL() {
   return (
     originFromHost(process.env.BETTER_AUTH_URL) ??
+    (process.env.VERCEL ? APP_URL : undefined) ??
     originFromHost(process.env.VERCEL_PROJECT_PRODUCTION_URL) ??
     originFromHost(process.env.VERCEL_URL) ??
     "http://localhost:3000"
@@ -28,6 +29,7 @@ function authTrustedOrigins() {
     process.env.BETTER_AUTH_URL,
     process.env.VERCEL_PROJECT_PRODUCTION_URL,
     process.env.VERCEL_URL,
+    APP_URL,
     "https://ulfah-app.vercel.app",
     "https://ulfah.com.au",
     "https://www.ulfah.com.au",
@@ -42,7 +44,7 @@ function authTrustedOrigins() {
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
-    schema,
+    schema: { user, session, account, verification },
   }),
   secret: process.env.BETTER_AUTH_SECRET,
   baseURL: authBaseURL(),
@@ -53,6 +55,18 @@ export const auth = betterAuth({
     // production has no working Resend key yet, so the owner would be locked out.
     requireEmailVerification: false,
     autoSignIn: false,
+    sendResetPassword: async ({ user, url }) => {
+      await sendEmail(
+        user.email,
+        `Reset your ${APP_NAME} password`,
+        emailLayout(
+          "Reset your password",
+          `<p>Assalamu alaikum ${user.name},</p>
+           <p>Use this link to choose a new password. It expires in one hour.</p>
+           <p><a href="${url}" style="display:inline-block;background:#1B3D32;color:#F4EFE4;padding:12px 18px;border-radius:999px;text-decoration:none">Choose a new password</a></p>`,
+        ),
+      );
+    },
   },
   emailVerification: {
     sendOnSignUp: true,
@@ -118,6 +132,8 @@ export const auth = betterAuth({
     max: 20,
   },
   trustedOrigins: authTrustedOrigins(),
+  // Host-only cookies so www and ulfah-app.vercel.app can each keep a session.
+  // Cross-subdomain Domain=ulfah.com.au would drop cookies on vercel.app.
   ...(process.env.VERCEL ? { advanced: { useSecureCookies: true } } : {}),
   plugins: [nextCookies()],
 });

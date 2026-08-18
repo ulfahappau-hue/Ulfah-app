@@ -7,6 +7,8 @@ const publicPaths = [
   "/register",
   "/setup",
   "/verify-email",
+  "/forgot-password",
+  "/reset-password",
   "/api/auth",
 ];
 

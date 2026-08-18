@@ -1,7 +1,14 @@
 "use client";
 
 import { useActionState } from "react";
-import { loginAction, registerAction, setupOwnerAction, type AuthState } from "@/actions/auth";
+import {
+  loginAction,
+  registerAction,
+  requestPasswordResetAction,
+  resetPasswordAction,
+  setupOwnerAction,
+  type AuthState,
+} from "@/actions/auth";
 import { Button, Field, Input, Select } from "@/components/ui";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 
@@ -20,6 +27,38 @@ export function LoginForm({ t }: { t: Dictionary }) {
       </Field>
       <Button type="submit" className="w-full" disabled={pending}>
         {t.auth.submitLogin}
+      </Button>
+    </form>
+  );
+}
+
+export function ForgotPasswordForm({ t }: { t: Dictionary }) {
+  const [state, action, pending] = useActionState(requestPasswordResetAction, initial);
+  return (
+    <form action={action} className="space-y-4">
+      {state.error ? <p className="text-sm text-rose-800">{state.error}</p> : null}
+      {state.message ? <p className="text-sm text-forest">{state.message}</p> : null}
+      <Field label={t.auth.email}>
+        <Input name="email" type="email" autoComplete="email" required />
+      </Field>
+      <Button type="submit" className="w-full" disabled={pending}>
+        {t.auth.forgotSubmit}
+      </Button>
+    </form>
+  );
+}
+
+export function ResetPasswordForm({ t, token }: { t: Dictionary; token: string }) {
+  const [state, action, pending] = useActionState(resetPasswordAction, initial);
+  return (
+    <form action={action} className="space-y-4">
+      {state.error ? <p className="text-sm text-rose-800">{state.error}</p> : null}
+      <input type="hidden" name="token" value={token} />
+      <Field label={t.auth.password} hint="At least 10 characters, with a letter and a number.">
+        <Input name="password" type="password" autoComplete="new-password" required />
+      </Field>
+      <Button type="submit" className="w-full" disabled={pending}>
+        {t.auth.resetSubmit}
       </Button>
     </form>
   );

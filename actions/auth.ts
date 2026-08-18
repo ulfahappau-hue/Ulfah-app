@@ -26,7 +26,7 @@ function dbErrorMessage(error: unknown, fallback: string) {
   return message;
 }
 
-export type AuthState = { error?: string; fieldErrors?: Record<string, string> };
+export type AuthState = { error?: string; message?: string };
 
 export async function registerAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
   const parsed = registerSchema.safeParse({
@@ -106,14 +106,31 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-async function findUserIdByEmail(email: string) {
+async function findUserByEmail(email: string) {
   const normalized = normalizeEmail(email);
   const rows = await db
-    .select({ id: user.id })
+    .select({ id: user.id, email: user.email })
     .from(user)
-    .where(ilike(user.email, normalized))
+    .where(sql`lower(${user.email}) = ${normalized}`)
     .limit(1);
-  return rows[0]?.id;
+  return rows[0];
+}
+
+async function findUserIdByEmail(email: string) {
+  return (await findUserByEmail(email))?.id;
+}
+
+async function storedEmailForSignIn(email: string) {
+  const found = await findUserByEmail(email);
+  if (!found) return normalizeEmail(email);
+  const canonical = normalizeEmail(found.email);
+  if (found.email !== canonical) {
+    await db
+      .update(user)
+      .set({ email: canonical, updatedAt: new Date() })
+      .where(eq(user.id, found.id));
+  }
+  return canonical;
 }
 
 async function redirectPathForEmail(email: string) {
@@ -188,9 +205,13 @@ export async function loginAction(_prev: AuthState, formData: FormData): Promise
   });
   if (!parsed.success) return { error: "Enter a valid email and password." };
 
-  const email = normalizeEmail(parsed.data.email);
+  const email = await storedEmailForSignIn(parsed.data.email);
   const password = parsed.data.password;
   const userId = await findUserIdByEmail(email);
+  console.warn("[login]", {
+    host: (await headers()).get("host") ?? "",
+    hasUserRow: Boolean(userId),
+  });
 
   if (userId && ((await countOwners()) ?? 0) === 0) {
     await markOwnerReady(userId);
@@ -274,6 +295,40 @@ export async function setupOwnerAction(_prev: AuthState, formData: FormData): Pr
 export async function signOutAction() {
   await auth.api.signOut({ headers: await headers() });
   redirect("/");
+}
+
+export async function requestPasswordResetAction(
+  _prev: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const email = await storedEmailForSignIn(String(formData.get("email") ?? ""));
+  if (!email.includes("@")) return { error: "Enter a valid email." };
+  try {
+    await auth.api.requestPasswordReset({
+      body: { email, redirectTo: "/reset-password" },
+      headers: await headers(),
+    });
+  } catch (error) {
+    return { error: dbErrorMessage(error, "Could not send a reset email.") };
+  }
+  return { message: "If that email is registered, check your inbox for a reset link." };
+}
+
+export async function resetPasswordAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const token = String(formData.get("token") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
+  if (!token || !passwordSchema.safeParse(password).success) {
+    return { error: "Use a strong password. If this link expired, request a new one." };
+  }
+  try {
+    await auth.api.resetPassword({
+      body: { newPassword: password, token },
+      headers: await headers(),
+    });
+  } catch (error) {
+    return { error: dbErrorMessage(error, "This reset link is invalid or expired.") };
+  }
+  redirect("/login");
 }
 
 export async function resendVerificationAction(formData: FormData) {

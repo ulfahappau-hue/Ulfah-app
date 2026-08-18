@@ -5,6 +5,11 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       bodySizeLimit: "8mb",
+      allowedOrigins: [
+        "www.ulfah.com.au",
+        "ulfah.com.au",
+        "ulfah-app.vercel.app",
+      ],
     },
   },
 };
