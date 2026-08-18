@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { Logo } from "@/components/logo";
+import { APP_NAME_AR } from "@/lib/constants";
 import { getDictionary } from "@/lib/i18n";
 import { countOwners, nextPathForUser } from "@/lib/me";
 import { getSession } from "@/lib/session";
 
 export default async function HomePage() {
-  const { t } = await getDictionary();
+  const { locale, t } = await getDictionary();
   const session = await getSession();
   const owners = await countOwners();
   const dbDown = owners === null;
@@ -50,13 +51,20 @@ npm run dev`}
           )}
         </div>
       ) : null}
-      <section className="overflow-hidden rounded-[2rem] border border-gold/25 bg-[radial-gradient(circle_at_top_right,#c6a36b22,transparent_40%),linear-gradient(180deg,#fbfaf6,#f4efe4)] px-6 py-12 sm:px-10">
+      <section className="overflow-hidden rounded-[2rem] border border-gold/25 bg-[radial-gradient(circle_at_top_right,#c6a36b28,transparent_42%),linear-gradient(180deg,#fbfaf6,#f4efe4)] px-6 py-12 sm:px-10">
         <p className="text-xs uppercase tracking-[0.25em] text-sage">{t.landing.kicker}</p>
-        <div className="mt-6 flex items-center gap-3">
-          <Logo className="h-12 w-12" />
-          <h1 className="font-display text-4xl leading-tight text-forest sm:text-5xl">
-            {t.brand}
-          </h1>
+        <div className="mt-6 flex items-center gap-4">
+          <Logo className="h-14 w-14" />
+          <div>
+            {locale !== "ar" ? (
+              <p className="font-arabic text-lg text-gold" dir="rtl">
+                {APP_NAME_AR}
+              </p>
+            ) : null}
+            <h1 className="font-display text-4xl leading-tight text-forest sm:text-5xl">
+              {t.brand}
+            </h1>
+          </div>
         </div>
         <p className="mt-6 max-w-xl font-display text-2xl text-forest sm:text-3xl">
           {t.landing.title}
@@ -87,6 +95,7 @@ npm run dev`}
             .
           </p>
         ) : null}
+        <p className="mt-8 text-xs tracking-[0.18em] text-sage uppercase">ulfah.com.au</p>
       </section>
       <section>
         <h2 className="font-display text-3xl text-forest">{t.landing.stepsTitle}</h2>

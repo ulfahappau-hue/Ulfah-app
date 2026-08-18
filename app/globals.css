@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --cream: #f4efe4;
+  --cream: #f6f1e6;
   --paper: #fbfaf6;
   --forest: #1b3d32;
   --forest-deep: #132b24;
@@ -35,6 +35,10 @@ body {
 
 .font-display {
   font-family: var(--font-display), Georgia, serif;
+}
+
+.font-arabic {
+  font-family: var(--font-arabic), Georgia, serif;
 }
 
 html[lang="ar"] body,

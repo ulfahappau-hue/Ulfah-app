@@ -18,7 +18,7 @@ export function emailLayout(title: string, body: string) {
   return `
   <div style="font-family:Georgia,serif;background:#F4EFE4;padding:24px;color:#1B3D32">
     <div style="max-width:520px;margin:0 auto;background:#FBFAF6;border:1px solid #E4D9C5;border-radius:16px;padding:28px">
-      <p style="letter-spacing:.2em;text-transform:uppercase;font-size:12px;color:#6B8F71;margin:0 0 8px">Mawadda</p>
+      <p style="letter-spacing:.2em;text-transform:uppercase;font-size:12px;color:#6B8F71;margin:0 0 8px">${APP_NAME}</p>
       <h1 style="font-size:24px;margin:0 0 16px">${title}</h1>
       <div style="font-size:16px;line-height:1.6">${body}</div>
     </div>

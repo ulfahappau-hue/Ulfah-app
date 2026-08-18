@@ -1,8 +1,8 @@
-# Mawadda — instructions
+# Ulfah — instructions
 
 Use this file to set up, run, and operate the app. Keep it in this folder.
 
-**Mawadda** is a private, invite-only Muslim marriage matching app for people who **currently live in Australia**. It is a mobile-friendly website (PWA), not a dating app. There is no in-app chat. Phone, email, and wali details stay hidden until **both people express interest** and a **matchmaker releases** the match.
+**Ulfah** is a private, invite-only Muslim marriage matching app for people who **currently live in Australia**. It is a mobile-friendly website (PWA), not a dating app. There is no in-app chat. Phone, email, and wali details stay hidden until **both people express interest** and a **matchmaker releases** the match.
 
 ---
 
@@ -258,7 +258,7 @@ Choose GitHub.com → HTTPS → login with a browser. Then tell Cursor to create
 ```bash
 git add .
 git status   # confirm .env.local is NOT listed
-git commit -m "Initial Mawadda app."
+git commit -m "Initial Ulfah app."
 gh repo create ulfah --private --source=. --remote=origin --push
 ```
 
@@ -275,9 +275,9 @@ Change `ulfah` to whatever repo name you want. Never commit `.env.local`.
 |---|---|
 | `DATABASE_URL` | Neon connection string with `?sslmode=require` |
 | `BETTER_AUTH_SECRET` | `openssl rand -base64 32` |
-| `BETTER_AUTH_URL` | `https://your-project.vercel.app` (update again if you add a custom domain) |
+| `BETTER_AUTH_URL` | `https://ulfah.com.au` |
 | `CONTACT_ENCRYPTION_KEY` | another `openssl rand -base64 32` |
-| `EMAIL_FROM` | e.g. `Mawadda <noreply@localhost>` until Resend is set |
+| `EMAIL_FROM` | e.g. `Ulfah <noreply@localhost>` until Resend is set |
 
 5. Deploy.
 6. On your computer, temporarily point `.env.local` `DATABASE_URL` at **Neon**, run `npm run db:push`, then switch it back to localhost for local PGlite.
@@ -285,11 +285,11 @@ Change `ulfah` to whatever repo name you want. Never commit `.env.local`.
 
 **Twilio:** use a number that can send SMS to Australian `+61 4` mobiles.
 
-**Resend:** verify your domain, then set `EMAIL_FROM` to something like `Mawadda <noreply@yourdomain.com.au>`.
+**Resend:** verify `ulfah.com.au`, then set `EMAIL_FROM` to something like `Ulfah <noreply@ulfah.com.au>`.
 
 **Photos:** local files go in `data/uploads` (gitignored). Vercel’s disk is not permanent. Before a real launch, switch photo storage to Vercel Blob.
 
-**Domains:** `mawadda.com.au` is taken. Prefer `ulfah.com.au`, `mithaq.com.au`, or `nikahau.com.au`. Point DNS to Vercel.
+**Domain:** `ulfah.com.au` is registered. Point DNS to Vercel and set `BETTER_AUTH_URL=https://ulfah.com.au`.
 
 Search engines are told not to index the site (`robots.txt` disallows all). Keep it invite-only.
 

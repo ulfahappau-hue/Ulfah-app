@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Noto_Naskh_Arabic, Source_Sans_3 } from "next/font/google";
 import { AppHeader } from "@/components/chrome";
+import { APP_NAME, APP_URL } from "@/lib/constants";
 import { getDictionary } from "@/lib/i18n";
 import { getSession } from "@/lib/session";
 import "./globals.css";
@@ -25,12 +26,14 @@ const arabic = Noto_Naskh_Arabic({
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Mawadda",
-  description: "Private Muslim marriage matching in Australia. Contact is released only after a mutual match and admin review.",
-  applicationName: "Mawadda",
+  metadataBase: new URL(APP_URL),
+  title: APP_NAME,
+  description:
+    "Private Muslim marriage matching in Australia. Contact is released only after a mutual match and admin review.",
+  applicationName: APP_NAME,
   appleWebApp: {
     capable: true,
-    title: "Mawadda",
+    title: APP_NAME,
     statusBarStyle: "default",
   },
 };

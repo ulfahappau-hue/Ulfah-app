@@ -18,4 +18,4 @@ npm run dev
 
 Then open [http://localhost:3000/setup](http://localhost:3000/setup) to create the owner account.
 
-Suggested domains: `ulfah.com.au`, `ulfah.au`, `getulfah.com`.
+Suggested domain: [ulfah.com.au](https://ulfah.com.au).

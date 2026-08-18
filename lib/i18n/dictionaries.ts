@@ -1,7 +1,7 @@
 export type Locale = "en" | "ar";
 
 export const en = {
-  brand: "Mawadda",
+  brand: "Ulfah",
   tagline: "Marriage matching with haya and a trusted admin.",
   nav: {
     browse: "Browse",
@@ -16,7 +16,7 @@ export const en = {
   landing: {
     kicker: "Australia · Muslims seeking nikah",
     title: "Meet with intention. Contact only when both — and an admin — agree.",
-    body: "Mawadda is a private, invite-only marriage matching service. You post a modest profile. If two people express interest, a matchmaker reviews the pair and then releases phone and email — including the wali for sisters.",
+    body: "Ulfah is a private, invite-only marriage matching service. You post a modest profile. If two people express interest, a matchmaker reviews the pair and then releases phone and email — including the wali for sisters.",
     cta: "I have an invite",
     signIn: "Sign in",
     stepsTitle: "How it works",
@@ -77,7 +77,7 @@ export const en = {
 export type Dictionary = typeof en;
 
 export const ar: Dictionary = {
-  brand: "مودة",
+  brand: "ألفة",
   tagline: "توفيق للزواج بحياء وبإشراف أمين.",
   nav: {
     browse: "تصفح",
@@ -92,7 +92,7 @@ export const ar: Dictionary = {
   landing: {
     kicker: "أستراليا · مسلمون يسعون للنكاح",
     title: "تعارف بنية الزواج. وبيانات التواصل لا تُفتح إلا بموافقة الطرفين والمشرف.",
-    body: "مودة خدمة خاصة بدعوة فقط. تنشر ملفاً محتشماً. إذا أبدى شخصان اهتماماً متبادلاً، يراجع المشرف الثنائي ثم يفتح رقم الهاتف والبريد — بما في ذلك ولي الأمر للأخوات.",
+    body: "ألفة خدمة خاصة بدعوة فقط. تنشر ملفاً محتشماً. إذا أبدى شخصان اهتماماً متبادلاً، يراجع المشرف الثنائي ثم يفتح رقم الهاتف والبريد — بما في ذلك ولي الأمر للأخوات.",
     cta: "لدي دعوة",
     signIn: "دخول",
     stepsTitle: "كيف يعمل",

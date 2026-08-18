@@ -86,7 +86,7 @@ export async function approveProfileAction(userId: string) {
   if (member) {
     await sendEmail(
       member.email,
-      "Your Mawadda profile is live",
+      `Your ${APP_NAME} profile is live`,
       emailLayout(
         "Profile approved",
         `<p>Assalamu alaikum ${member.name},</p><p>Your profile is now visible to matching members.</p>`,
@@ -115,7 +115,7 @@ export async function rejectProfileAction(userId: string, formData: FormData) {
   if (member) {
     await sendEmail(
       member.email,
-      "Please update your Mawadda profile",
+      `Please update your ${APP_NAME} profile`,
       emailLayout(
         "Profile needs an update",
         `<p>Assalamu alaikum ${member.name},</p><p>${note || "Please review your profile and submit again."}</p>`,
@@ -205,7 +205,7 @@ export async function releaseMatchAction(matchId: string) {
 
     await sendEmail(
       recipient.email,
-      "Mawadda has released a match",
+      `${APP_NAME} has released a match`,
       emailLayout(
         "Contact details released",
         `<p>Assalamu alaikum ${recipient.name},</p>

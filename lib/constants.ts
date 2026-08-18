@@ -1,5 +1,10 @@
-export const APP_NAME = "Mawadda";
+export const APP_NAME = "Ulfah";
+export const APP_NAME_AR = "ألفة";
+export const APP_DOMAIN = "ulfah.com.au";
+export const APP_URL = `https://${APP_DOMAIN}`;
 export const APP_TAGLINE = "Muslim marriage matching in Australia";
+export const LOCALE_COOKIE = "ulfah-locale";
+export const LEGACY_LOCALE_COOKIE = "mawadda-locale";
 
 export const ROLES = ["member", "matchmaker", "owner"] as const;
 export type Role = (typeof ROLES)[number];

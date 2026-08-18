@@ -7,6 +7,7 @@ function getKey() {
   if (!secret || secret.length < 16) {
     throw new Error("CONTACT_ENCRYPTION_KEY must be set (16+ characters)");
   }
+  // Keep this salt stable so existing encrypted wali fields still decrypt.
   return scryptSync(secret, "mawadda-contacts", 32);
 }
 

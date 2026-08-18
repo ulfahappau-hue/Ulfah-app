@@ -14,7 +14,7 @@ export default async function RegisterPage({
     <Card className="mx-auto max-w-md">
       <h1 className="font-display text-3xl text-forest">{t.auth.registerTitle}</h1>
       <p className="mt-2 mb-6 text-sm text-forest/70">
-        Mawadda is invite-only. Ask a matchmaker for a code.
+        Ulfah is invite-only. Ask a matchmaker for a code.
       </p>
       <RegisterForm t={t} invite={invite} />
       <p className="mt-6 text-sm text-forest/80">

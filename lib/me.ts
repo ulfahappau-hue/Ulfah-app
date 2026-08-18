@@ -2,12 +2,12 @@ import { and, eq, isNull } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { db } from "./db";
 import { user } from "./db/schema";
-import type { Role } from "./constants";
+import { LOCALE_COOKIE, type Role } from "./constants";
 import { getSession } from "./session";
 
 export async function setLocaleCookie(locale: "en" | "ar") {
   const jar = await cookies();
-  jar.set("mawadda-locale", locale, {
+  jar.set(LOCALE_COOKIE, locale, {
     path: "/",
     maxAge: 60 * 60 * 24 * 365,
     sameSite: "lax",
