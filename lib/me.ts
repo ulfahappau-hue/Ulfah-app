@@ -2,8 +2,10 @@ import { and, eq, isNull } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { db } from "./db";
 import { user } from "./db/schema";
-import { LOCALE_COOKIE, type Role } from "./constants";
+import { LOCALE_COOKIE } from "./constants";
 import { getSession } from "./session";
+
+export { nextPathForUser } from "./next-path";
 
 export async function setLocaleCookie(locale: "en" | "ar") {
   const jar = await cookies();
@@ -21,22 +23,6 @@ export async function countOwners() {
   } catch {
     return null;
   }
-}
-
-export function nextPathForUser(input: {
-  role: string;
-  emailVerified: boolean;
-  phoneVerified: boolean;
-  memberStatus: string;
-}) {
-  const role = input.role as Role;
-  if (role === "owner" || role === "matchmaker") return "/admin";
-  if (!input.emailVerified) return "/verify-email";
-  if (!input.phoneVerified) return "/verify-phone";
-  if (input.memberStatus === "banned") return "/banned";
-  if (input.memberStatus === "onboarding") return "/onboarding";
-  if (input.memberStatus === "hidden_matched") return "/matches";
-  return "/browse";
 }
 
 export async function getMe() {

@@ -2,20 +2,21 @@ import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { APP_NAME_AR } from "@/lib/constants";
 import { getDictionary } from "@/lib/i18n";
-import { countOwners, nextPathForUser } from "@/lib/me";
+import { countOwners, getMe, nextPathForUser } from "@/lib/me";
 import { getSession } from "@/lib/session";
 
 export default async function HomePage() {
   const { locale, t } = await getDictionary();
   const session = await getSession();
+  const me = session ? await getMe() : null;
   const owners = await countOwners();
   const dbDown = owners === null;
-  const href = session
+  const href = me
     ? nextPathForUser({
-        role: session.user.role,
-        emailVerified: Boolean(session.user.emailVerified),
-        phoneVerified: Boolean(session.user.phoneVerified),
-        memberStatus: session.user.memberStatus,
+        role: me.role,
+        emailVerified: Boolean(me.emailVerified),
+        phoneVerified: Boolean(me.phoneVerified),
+        memberStatus: me.memberStatus,
       })
     : "/register";
 

@@ -1,26 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState } from "react";
 import { sendPhoneOtpAction, verifyPhoneOtpAction, type PhoneState } from "@/actions/phone";
 import { Button, Field, Input } from "@/components/ui";
 
+const initial: PhoneState = {};
+
 export function PhoneVerifyForm() {
-  const [sendState, setSendState] = useState<PhoneState>({});
-  const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [sendState, sendAction, sending] = useActionState(sendPhoneOtpAction, initial);
+  const [verifyState, verifyAction, verifying] = useActionState(verifyPhoneOtpAction, initial);
 
   return (
     <div className="space-y-8">
-      <form
-        className="space-y-4"
-        action={async (formData) => {
-          const result = await sendPhoneOtpAction({}, formData);
-          setSendState(result);
-        }}
-      >
+      <form className="space-y-4" action={sendAction}>
         <Field label="Australian mobile" hint="Used for login recovery and match-release SMS.">
-          <Input name="phone" required placeholder="04xxxxxxxx" inputMode="tel" />
+          <Input name="phone" required placeholder="04xxxxxxxx" inputMode="tel" id="phone" />
         </Field>
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" disabled={sending}>
           Send code
         </Button>
         {sendState.error ? <p className="text-sm text-rose-800">{sendState.error}</p> : null}
@@ -31,18 +27,15 @@ export function PhoneVerifyForm() {
           </p>
         ) : null}
       </form>
-      <form
-        className="space-y-4"
-        action={async (formData) => {
-          const result = await verifyPhoneOtpAction({}, formData);
-          if (result.error) setVerifyError(result.error);
-        }}
-      >
+      <form className="space-y-4" action={verifyAction}>
+        <Field label="Australian mobile">
+          <Input name="phone" required placeholder="04xxxxxxxx" inputMode="tel" />
+        </Field>
         <Field label="6-digit code">
           <Input name="code" required inputMode="numeric" maxLength={6} />
         </Field>
-        {verifyError ? <p className="text-sm text-rose-800">{verifyError}</p> : null}
-        <Button type="submit" className="w-full" variant="secondary">
+        {verifyState.error ? <p className="text-sm text-rose-800">{verifyState.error}</p> : null}
+        <Button type="submit" className="w-full" variant="secondary" disabled={verifying}>
           Verify phone
         </Button>
       </form>

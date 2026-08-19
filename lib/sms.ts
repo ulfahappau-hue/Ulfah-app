@@ -1,16 +1,31 @@
 import twilio from "twilio";
 
-export async function sendSms(to: string, body: string) {
-  const sid = process.env.TWILIO_ACCOUNT_SID;
-  const token = process.env.TWILIO_AUTH_TOKEN;
-  const from = process.env.TWILIO_FROM_NUMBER;
+export function smsConfigured() {
+  return Boolean(
+    process.env.TWILIO_ACCOUNT_SID &&
+      process.env.TWILIO_AUTH_TOKEN &&
+      process.env.TWILIO_FROM_NUMBER,
+  );
+}
 
-  if (!sid || !token || !from) {
+export async function sendSms(to: string, body: string) {
+  if (!smsConfigured()) {
     console.info(`[sms:dev] to=${to}\n${body}`);
     return { dev: true as const };
   }
 
-  const client = twilio(sid, token);
-  await client.messages.create({ to, from, body });
-  return { dev: false as const };
+  try {
+    const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+    await client.messages.create({
+      to,
+      from: process.env.TWILIO_FROM_NUMBER,
+      body,
+    });
+    return { dev: false as const };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Twilio send failed";
+    console.error(`[sms:twilio] ${message}`);
+    console.info(`[sms:dev] fallback to=${to}\n${body}`);
+    return { dev: true as const };
+  }
 }

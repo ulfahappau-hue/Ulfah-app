@@ -216,6 +216,7 @@ export async function loginAction(_prev: AuthState, formData: FormData): Promise
   if (userId && ((await countOwners()) ?? 0) === 0) {
     await markOwnerReady(userId);
   } else if (userId) {
+    // Only emailVerified — do not touch phoneVerified or memberStatus.
     await db
       .update(user)
       .set({ emailVerified: true, updatedAt: new Date() })
