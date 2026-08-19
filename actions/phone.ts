@@ -114,22 +114,26 @@ export async function verifyPhoneOtpAction(
     return { error: "That phone number is already in use." };
   }
 
-  const updated = await db
+  await db
     .update(user)
     .set({
       phone,
       phoneVerified: true,
       updatedAt: new Date(),
     })
-    .where(eq(user.id, me.id))
-    .returning({
-      id: user.id,
+    .where(eq(user.id, me.id));
+
+  const savedRows = await db
+    .select({
       role: user.role,
       emailVerified: user.emailVerified,
       phoneVerified: user.phoneVerified,
       memberStatus: user.memberStatus,
-    });
-  const saved = updated[0];
+    })
+    .from(user)
+    .where(eq(user.id, me.id))
+    .limit(1);
+  const saved = savedRows[0];
   if (!saved?.phoneVerified) {
     return { error: "Could not save phone verification. Try again." };
   }
