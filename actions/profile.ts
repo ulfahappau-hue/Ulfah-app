@@ -9,9 +9,14 @@ import { encryptSecret } from "@/lib/encryption";
 import { savePhotoFile } from "@/lib/storage";
 import { requireSession } from "@/lib/session";
 import { isAtLeastAge, isValidAuMobile, newId, normalizeAuPhone } from "@/lib/utils";
-import { profileSchema } from "@/lib/validators";
+import { fieldErrorsFromZod, profileSchema, readProfileDraft, type ProfileDraft } from "@/lib/validators";
 
-export type ProfileState = { error?: string; ok?: boolean };
+export type ProfileState = {
+  error?: string;
+  fieldErrors?: Record<string, string>;
+  values?: ProfileDraft;
+  ok?: boolean;
+};
 
 export async function saveProfileAction(
   _prev: ProfileState,
@@ -48,20 +53,33 @@ export async function saveProfileAction(
     waliEmail: formData.get("waliEmail") || undefined,
   });
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Please check the form." };
+    return {
+      fieldErrors: fieldErrorsFromZod(parsed.error),
+      values: readProfileDraft(formData),
+    };
   }
   if (!isAtLeastAge(parsed.data.dateOfBirth)) {
-    return { error: "You must be 18 or older." };
+    return {
+      fieldErrors: { dateOfBirth: "You must be 18 or older." },
+      values: readProfileDraft(formData),
+    };
   }
 
   const gender = me.gender;
   if (gender === "female") {
     if (!parsed.data.waliName || !parsed.data.waliPhone || !parsed.data.waliEmail) {
-      return { error: "Sisters must include wali name, phone, and email." };
+      const fieldErrors: Record<string, string> = {};
+      if (!parsed.data.waliName) fieldErrors.waliName = "Enter your wali’s name.";
+      if (!parsed.data.waliPhone) fieldErrors.waliPhone = "Enter your wali’s mobile.";
+      if (!parsed.data.waliEmail) fieldErrors.waliEmail = "Enter your wali’s email.";
+      return { fieldErrors, values: readProfileDraft(formData) };
     }
   }
   if (parsed.data.waliPhone && !isValidAuMobile(normalizeAuPhone(parsed.data.waliPhone))) {
-    return { error: "Wali phone must be a valid Australian mobile." };
+    return {
+      fieldErrors: { waliPhone: "Wali phone must be a valid Australian mobile." },
+      values: readProfileDraft(formData),
+    };
   }
 
   const existing = await db

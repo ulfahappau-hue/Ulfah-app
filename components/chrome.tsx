@@ -26,18 +26,18 @@ export function AppHeader({
           {user ? (
             <>
               {isAdminRole(user.role) ? (
-                <Link href="/admin" className="hidden text-sm text-forest sm:inline">
+                <Link href="/admin" className="hidden cursor-pointer text-sm text-forest sm:inline">
                   {t.nav.admin}
                 </Link>
               ) : null}
               <form action={signOutAction}>
-                <button type="submit" className="text-sm text-forest/70">
+                <button type="submit" className="cursor-pointer text-sm text-forest/70">
                   {t.nav.signOut}
                 </button>
               </form>
             </>
           ) : (
-            <Link href="/login" className="text-sm text-forest">
+            <Link href="/login" className="cursor-pointer text-sm text-forest">
               {t.nav.login}
             </Link>
           )}
@@ -62,7 +62,7 @@ export function MemberTabs({ t, role }: { t: Dictionary; role: string }) {
           <li key={item.href}>
             <Link
               href={item.href}
-              className="block rounded-2xl px-2 py-2 text-center text-xs text-forest"
+              className="block cursor-pointer rounded-2xl px-2 py-2 text-center text-xs text-forest"
             >
               {item.label}
             </Link>
