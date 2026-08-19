@@ -1,15 +1,11 @@
-import { mkdirSync } from "node:fs";
-import { resolve } from "node:path";
-import { PGlite } from "@electric-sql/pglite";
-import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
 import { drizzle as drizzlePostgres } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { getDatabaseUrl, isRemotePostgres, PGLITE_PATH } from "../db-mode";
+import { getDatabaseUrl, isRemotePostgres } from "../db-mode";
+import { createPgliteDb } from "./pglite";
 import * as schema from "./schema";
 
 const globalForDb = globalThis as unknown as {
   postgres?: ReturnType<typeof postgres>;
-  pglite?: PGlite;
 };
 
 function createDb() {
@@ -41,12 +37,7 @@ function createDb() {
     return drizzlePostgres(globalForDb.postgres, { schema });
   }
 
-  if (!globalForDb.pglite) {
-    const dir = resolve(process.cwd(), PGLITE_PATH);
-    mkdirSync(dir, { recursive: true });
-    globalForDb.pglite = new PGlite(dir);
-  }
-  return drizzlePglite(globalForDb.pglite, { schema });
+  return createPgliteDb();
 }
 
 export const db = createDb();
