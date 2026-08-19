@@ -6,6 +6,7 @@ import { MAX_PHOTO_BYTES, MAX_PHOTOS, SENSITIVE_PROFILE_FIELDS } from "@/lib/con
 import { db } from "@/lib/db";
 import { contactSecret, photo, profile, user } from "@/lib/db/schema";
 import { encryptSecret } from "@/lib/encryption";
+import { sendProfileSubmittedEmails } from "@/lib/email";
 import { savePhotoFile } from "@/lib/storage";
 import { requireSession } from "@/lib/session";
 import { isAtLeastAge, isValidAuMobile, newId, normalizeAuPhone } from "@/lib/utils";
@@ -168,6 +169,8 @@ export async function saveProfileAction(
     });
 
   if (submit && me.role === "member") {
+    const firstSubmitForReview =
+      me.memberStatus !== "pending_review" || Boolean(sensitiveChanged);
     await db
       .update(user)
       .set({
@@ -175,6 +178,19 @@ export async function saveProfileAction(
         updatedAt: new Date(),
       })
       .where(eq(user.id, me.id));
+    if (firstSubmitForReview) {
+      const owners = await db
+        .select({ email: user.email })
+        .from(user)
+        .where(eq(user.role, "owner"))
+        .limit(1);
+      await sendProfileSubmittedEmails({
+        memberEmail: me.email,
+        memberName: me.name,
+        memberUserId: me.id,
+        ownerEmail: owners[0]?.email,
+      });
+    }
   }
 
   revalidatePath("/onboarding");
